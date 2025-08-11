@@ -1,0 +1,111 @@
+# Kubernetes Development Environment Setup - CLI Instructions
+
+## Step 1: Install Podman
+
+### macOS
+brew install podman
+podman machine init
+podman machine start
+
+### Linux (Ubuntu/Debian)
+sudo apt-get update
+sudo apt-get install -y podman
+
+### Linux (RHEL/CentOS/Fedora)
+sudo dnf install -y podman
+
+### Windows (PowerShell as Administrator)
+choco install podman-desktop
+podman machine init
+podman machine start
+
+### Verify Installation
+podman --version
+podman info
+
+## Step 2: Install VS Code Kubernetes Extension
+
+### Command Line Method
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+
+### Manual Method
+1. Open VS Code
+2. Press Ctrl+Shift+X (Windows/Linux) or Cmd+Shift+X (Mac)
+3. Search for "Kubernetes"
+4. Install the "Kubernetes" extension by Microsoft
+
+## Step 3: Install kubectl
+
+### macOS
+brew install kubectl
+
+### Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/kubectl
+
+### Windows (PowerShell as Administrator)
+choco install kubernetes-cli
+
+### Verify Installation
+kubectl version --client
+
+## Step 4: Install Minikube
+
+### macOS
+brew install minikube
+
+### Linux
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+### Windows (PowerShell as Administrator)
+choco install minikube
+
+### Verify Installation
+minikube version
+
+## Step 5: Start Minikube
+
+### Basic Startup
+minikube start --driver=podman
+
+### Enable Useful Addons
+minikube addons enable dashboard
+minikube addons enable ingress
+minikube addons enable metrics-server
+
+### Verify Cluster
+minikube status
+kubectl cluster-info
+kubectl get nodes
+
+## Step 6: Verify VS Code Integration
+
+1. Open VS Code
+2. Click the Kubernetes icon in the Activity Bar
+3. You should see your minikube cluster listed
+
+## Test Setup
+kubectl run test-pod --image=nginx:latest --port=80
+kubectl get pods
+kubectl delete pod test-pod
+
+## Troubleshooting
+
+### Minikube won't start
+minikube delete
+minikube start --driver=docker
+
+### VS Code extension not connecting
+kubectl config use-context minikube
+
+### Podman permission issues (Linux)
+sudo usermod -aG podman $USER
+newgrp podman
+
+## Daily Use Commands
+minikube start
+minikube stop
+minikube dashboard
+minikube ip

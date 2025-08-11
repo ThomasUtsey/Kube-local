@@ -1,0 +1,148 @@
+# Kubernetes Setup Instructions - macOS
+
+## Prerequisites
+- macOS 10.14 or later
+- 4GB+ RAM available
+- Internet connection
+- Terminal access
+
+## Step 1: Install Homebrew (if not already installed)
+# Open Terminal and run:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Verify Homebrew installation
+brew --version
+
+## Step 2: Install Podman
+# Install podman using Homebrew
+brew install podman
+
+# Initialize podman machine (creates VM for containers)
+podman machine init
+
+# Start the podman machine
+podman machine start
+
+# Verify podman is working
+podman --version
+podman info
+
+## Step 3: Install kubectl
+# Install kubectl using Homebrew
+brew install kubectl
+
+# Verify kubectl installation
+kubectl version --client
+
+# Expected output: Client Version: v1.28.x
+
+## Step 4: Install Minikube
+# Install minikube using Homebrew
+brew install minikube
+
+# Verify minikube installation
+minikube version
+
+# Expected output: minikube version: v1.32.x
+
+## Step 5: Install VS Code Kubernetes Extension
+# Install VS Code (if not already installed)
+brew install --cask visual-studio-code
+
+# Install Kubernetes extension via command line
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+
+# Alternative: Open VS Code → Extensions (⌘+Shift+X) → Search "Kubernetes" → Install
+
+## Step 6: Start Minikube
+# Start minikube with podman driver
+minikube start --driver=podman
+
+# This will:
+# - Download Kubernetes components
+# - Create a local cluster
+# - Configure kubectl context
+
+# Enable useful addons
+minikube addons enable dashboard
+minikube addons enable ingress
+minikube addons enable metrics-server
+
+## Step 7: Verify Installation
+# Check minikube status
+minikube status
+
+# Expected output:
+# minikube
+# type: Control Plane
+# host: Running
+# kubelet: Running
+# apiserver: Running
+
+# Check cluster info
+kubectl cluster-info
+
+# Check nodes
+kubectl get nodes
+
+# Expected: One node named "minikube" in Ready status
+
+## Step 8: Test Setup
+# Create a test pod
+kubectl run test-nginx --image=nginx:latest --port=80
+
+# Check if pod is running
+kubectl get pods
+
+# Clean up test pod
+kubectl delete pod test-nginx
+
+## Step 9: Access VS Code Kubernetes Extension
+# Open VS Code
+code .
+
+# Click the Kubernetes icon in the Activity Bar (left sidebar)
+# You should see your minikube cluster listed under "Clusters"
+
+## Daily Usage Commands
+# Start minikube (when needed)
+minikube start
+
+# Stop minikube (to save resources)
+minikube stop
+
+# Access Kubernetes dashboard
+minikube dashboard
+
+# Get minikube IP address
+minikube ip
+
+## Troubleshooting
+
+### Issue: Podman machine won't start
+# Reset podman machine
+podman machine stop
+podman machine rm
+podman machine init
+podman machine start
+
+### Issue: Minikube won't start
+# Try different driver
+minikube start --driver=docker
+
+# Or reset minikube
+minikube delete
+minikube start --driver=podman
+
+### Issue: VS Code extension not connecting
+# Check kubectl context
+kubectl config current-context
+
+# Should show "minikube"
+# If not, set context:
+kubectl config use-context minikube
+
+## Next Steps
+- Proceed to 01-beginner exercises
+- Use either Jupyter notebooks or CLI instructions
+- Start with basic pod concepts

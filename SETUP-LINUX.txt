@@ -1,0 +1,203 @@
+# Kubernetes Setup Instructions - Linux
+
+## Prerequisites
+- Linux distribution (Ubuntu 18.04+, CentOS 7+, or equivalent)
+- 4GB+ RAM available
+- Internet connection
+- Terminal access with sudo privileges
+
+## Step 1: Update System Packages
+# Ubuntu/Debian
+sudo apt-get update && sudo apt-get upgrade -y
+
+# RHEL/CentOS/Fedora
+# sudo dnf update -y
+
+# Arch Linux
+# sudo pacman -Syu
+
+## Step 2: Install Podman
+# Ubuntu/Debian
+sudo apt-get install -y podman
+
+# RHEL/CentOS/Fedora
+# sudo dnf install -y podman
+
+# Arch Linux
+# sudo pacman -S podman
+
+# Verify podman installation
+podman --version
+podman info
+
+# Add user to podman group (if needed)
+sudo usermod -aG podman $USER
+newgrp podman
+
+## Step 3: Install kubectl
+# Download latest kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+# Make kubectl executable
+chmod +x kubectl
+
+# Move to system PATH
+sudo mv kubectl /usr/local/bin/kubectl
+
+# Verify kubectl installation
+kubectl version --client
+
+# Expected output: Client Version: v1.28.x
+
+## Step 4: Install Minikube
+# Download latest minikube
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+# Install minikube
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Clean up downloaded file
+rm minikube-linux-amd64
+
+# Verify minikube installation
+minikube version
+
+# Expected output: minikube version: v1.32.x
+
+## Step 5: Install VS Code (Optional)
+# Ubuntu/Debian - Download .deb package
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+sudo apt-get update
+sudo apt-get install code
+
+# Install Kubernetes extension
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+
+## Step 6: Start Minikube
+# Start minikube with podman driver
+minikube start --driver=podman
+
+# This process will:
+# - Download Kubernetes components (~300MB)
+# - Create a local cluster
+# - Configure kubectl context
+# - Take 2-5 minutes on first run
+
+# Enable useful addons
+minikube addons enable dashboard
+minikube addons enable ingress
+minikube addons enable metrics-server
+
+## Step 7: Verify Installation
+# Check minikube status
+minikube status
+
+# Expected output:
+# minikube
+# type: Control Plane
+# host: Running
+# kubelet: Running
+# apiserver: Running
+
+# Check cluster info
+kubectl cluster-info
+
+# Check nodes
+kubectl get nodes
+
+# Expected: One node named "minikube" in Ready status
+
+# Check system pods
+kubectl get pods -n kube-system
+
+## Step 8: Test Setup
+# Create a test pod
+kubectl run test-nginx --image=nginx:latest --port=80
+
+# Wait for pod to be ready
+kubectl wait --for=condition=Ready pod/test-nginx --timeout=60s
+
+# Check pod status
+kubectl get pods
+
+# Expected: test-nginx pod in Running status
+
+# Clean up test pod
+kubectl delete pod test-nginx
+
+## Step 9: Configure Shell Completion (Optional)
+# Add kubectl completion to bash
+echo 'source <(kubectl completion bash)' >>~/.bashrc
+
+# Add minikube completion to bash
+echo 'source <(minikube completion bash)' >>~/.bashrc
+
+# Reload bash configuration
+source ~/.bashrc
+
+## Daily Usage Commands
+# Start minikube
+minikube start
+
+# Stop minikube (saves resources)
+minikube stop
+
+# Access Kubernetes dashboard
+minikube dashboard
+
+# Get minikube IP
+minikube ip
+
+# SSH into minikube
+minikube ssh
+
+## Troubleshooting
+
+### Issue: Permission denied with podman
+# Add user to podman group
+sudo usermod -aG podman $USER
+newgrp podman
+
+# Or run with sudo (not recommended)
+sudo minikube start --driver=podman
+
+### Issue: Minikube won't start
+# Check available drivers
+minikube start --help | grep driver
+
+# Try docker driver (if docker is installed)
+minikube start --driver=docker
+
+# Reset minikube
+minikube delete
+minikube start --driver=podman
+
+### Issue: kubectl not found
+# Check if kubectl is in PATH
+which kubectl
+
+# If not found, ensure /usr/local/bin is in PATH
+echo 'export PATH=$PATH:/usr/local/bin' >> ~/.bashrc
+source ~/.bashrc
+
+### Issue: VS Code extension not working
+# Check kubectl context
+kubectl config current-context
+
+# Should return "minikube"
+# If not, set context:
+kubectl config use-context minikube
+
+## Performance Optimization
+# Allocate more resources to minikube (if needed)
+minikube config set memory 4096
+minikube config set cpus 2
+minikube delete
+minikube start --driver=podman
+
+## Next Steps
+- Proceed to 01-beginner exercises
+- Choose between Jupyter notebooks or CLI instructions
+- Start with basic Kubernetes concepts

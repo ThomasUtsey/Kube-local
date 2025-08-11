@@ -1,0 +1,221 @@
+# Kubernetes Setup Instructions - Windows
+
+## Prerequisites
+- Windows 10/11 (64-bit)
+- 4GB+ RAM available
+- Internet connection
+- PowerShell with Administrator privileges
+- Windows Subsystem for Linux (WSL2) recommended
+
+## Step 1: Install Chocolatey Package Manager
+# Open PowerShell as Administrator
+# Run the following command:
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Verify Chocolatey installation
+choco --version
+
+# Alternative: Use Scoop package manager
+# Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+# irm get.scoop.sh | iex
+
+## Step 2: Install Podman
+# Install Podman Desktop using Chocolatey
+choco install podman-desktop -y
+
+# Alternative: Download from https://podman.io/getting-started/installation
+# After installation, initialize podman machine:
+podman machine init
+podman machine start
+
+# Verify podman installation
+podman --version
+podman info
+
+## Step 3: Install kubectl
+# Install kubectl using Chocolatey
+choco install kubernetes-cli -y
+
+# Alternative using Scoop:
+# scoop install kubectl
+
+# Verify kubectl installation
+kubectl version --client
+
+# Expected output: Client Version: v1.28.x
+
+## Step 4: Install Minikube
+# Install minikube using Chocolatey
+choco install minikube -y
+
+# Alternative using Scoop:
+# scoop install minikube
+
+# Verify minikube installation
+minikube version
+
+# Expected output: minikube version: v1.32.x
+
+## Step 5: Install VS Code and Kubernetes Extension
+# Install VS Code using Chocolatey
+choco install vscode -y
+
+# Install Kubernetes extension via command line
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+
+# Alternative: Open VS Code → Extensions (Ctrl+Shift+X) → Search "Kubernetes" → Install
+
+## Step 6: Configure Windows Features (if needed)
+# Enable Hyper-V (required for some drivers)
+# Run in PowerShell as Administrator:
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+
+# Enable WSL2 (recommended)
+wsl --install
+
+# Restart computer after enabling features
+
+## Step 7: Start Minikube
+# Open PowerShell as Administrator
+# Start minikube with podman driver
+minikube start --driver=podman
+
+# If podman doesn't work, try other drivers:
+# minikube start --driver=hyperv
+# minikube start --driver=docker
+
+# This process will:
+# - Download Kubernetes components
+# - Create a local cluster
+# - Configure kubectl context
+
+# Enable useful addons
+minikube addons enable dashboard
+minikube addons enable ingress
+minikube addons enable metrics-server
+
+## Step 8: Verify Installation
+# Check minikube status
+minikube status
+
+# Expected output:
+# minikube
+# type: Control Plane
+# host: Running
+# kubelet: Running
+# apiserver: Running
+
+# Check cluster info
+kubectl cluster-info
+
+# Check nodes
+kubectl get nodes
+
+# Expected: One node named "minikube" in Ready status
+
+## Step 9: Test Setup
+# Create a test pod
+kubectl run test-nginx --image=nginx:latest --port=80
+
+# Check pod status
+kubectl get pods
+
+# Wait for pod to be ready
+kubectl wait --for=condition=Ready pod/test-nginx --timeout=60s
+
+# Clean up test pod
+kubectl delete pod test-nginx
+
+## Step 10: Configure PowerShell Completion (Optional)
+# Install PowerShell completion for kubectl
+kubectl completion powershell | Out-String | Invoke-Expression
+
+# Add to PowerShell profile for persistence
+kubectl completion powershell >> $PROFILE
+
+## Daily Usage Commands
+# Start minikube
+minikube start
+
+# Stop minikube (saves resources)
+minikube stop
+
+# Access Kubernetes dashboard
+minikube dashboard
+
+# Get minikube IP
+minikube ip
+
+## Troubleshooting
+
+### Issue: Execution Policy Error
+# Set execution policy for current user
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+### Issue: Hyper-V not available
+# Check if virtualization is enabled in BIOS
+# Try docker driver instead:
+minikube start --driver=docker
+
+### Issue: Podman machine won't start
+# Reset podman machine
+podman machine stop
+podman machine rm
+podman machine init
+podman machine start
+
+### Issue: Minikube fails to start
+# Delete and recreate minikube
+minikube delete
+minikube start --driver=hyperv
+
+# Check Windows version compatibility
+winver
+
+### Issue: kubectl not recognized
+# Add kubectl to PATH manually
+# Go to System Properties → Environment Variables
+# Add C:\ProgramData\chocolatey\bin to PATH
+
+### Issue: VS Code extension not connecting
+# Check kubectl context
+kubectl config current-context
+
+# Should return "minikube"
+# Set context if needed:
+kubectl config use-context minikube
+
+## Windows-Specific Notes
+
+### Using WSL2 (Recommended)
+# Install WSL2 and Ubuntu
+wsl --install -d Ubuntu
+
+# Run minikube from WSL2 for better performance
+wsl
+# Then follow Linux instructions inside WSL2
+
+### Firewall Configuration
+# Windows Defender may block some connections
+# Add exceptions for:
+# - kubectl.exe
+# - minikube.exe
+# - podman.exe
+
+### Resource Management
+# Allocate more resources if needed
+minikube config set memory 4096
+minikube config set cpus 2
+minikube delete
+minikube start
+
+## Performance Tips
+- Use WSL2 for better performance
+- Allocate sufficient RAM (4GB minimum)
+- Close unnecessary applications
+- Use SSD storage if available
+
+## Next Steps
+- Proceed to 01-beginner exercises
+- Choose between Jupyter notebooks or CLI instructions
+- Consider using WSL2 for better Linux compatibility
